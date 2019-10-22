@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 import os
 from os.path import join as pjoin
-import labelHelper as lh
+import modules.labelHelper as lh 
 from sklearn.model_selection import train_test_split
 import random
 
