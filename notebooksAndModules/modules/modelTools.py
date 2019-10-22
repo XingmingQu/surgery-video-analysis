@@ -59,7 +59,7 @@ def multi_task_branch(input_feature,no_of_neuron_indense,dp_rate,branch_name):
     y1 = Activation('relu')(y1)
     y1 = Dropout(dp_rate)(y1)
     
-    y1= Dense(1, activation='sigmoid',kernel_initializer='glorot_uniform',name=branch_name)(y1)
+    y1= Dense(1, activation='relu',kernel_initializer='glorot_uniform',name=branch_name)(y1)
     return y1
 
 def make_model(l2_lambda,clip_lenth,dimension):
@@ -68,13 +68,13 @@ def make_model(l2_lambda,clip_lenth,dimension):
     #branch 1
     x=conv_branch(init_input,5)
 
-    #branch 2
-    y=conv_branch(init_input,8)
+    # #branch 2
+    # y=conv_branch(init_input,8)
     
-    #branch 3
+    # #branch 3
     z=conv_branch(init_input,10)
-    
-    video_clip_feature = concatenate([x,y,z], name='video_clip_feature')
+    video_clip_feature = concatenate([x,z], name='video_clip_feature')
+    # video_clip_feature = concatenate([x,y,z], name='video_clip_feature')
     
     no_of_neuron_indense=16
     dp_rate=0.3
@@ -143,3 +143,142 @@ def generator(data, label, batch_size=64,noise_range=0.1):
             RC.append(y[i][5])
         labels = [np.array(DP),np.array(BD),np.array(E),np.array(FS), np.array(A),np.array(RC)]
         yield samples,labels
+
+
+# the model we will use
+def make_model_1d(l2_lambda,clip_lenth,dimension):
+    input_holder = Input(shape=(clip_lenth, dimension))
+    x = Conv1D(filters=8, 
+                     kernel_size=15, 
+                     padding='same',
+                     activation='relu', 
+                     input_shape=(clip_lenth, dimension),
+                     kernel_regularizer=l2(l2_lambda)
+              )(input_holder)
+    x = BatchNormalization()(x)
+
+    x = Conv1D(filters=8, 
+                     kernel_size=10, 
+                     padding='same',
+                     activation='relu', 
+                     input_shape=(clip_lenth, dimension),
+                    kernel_regularizer=l2(l2_lambda)
+              )(x)
+
+    x = BatchNormalization()(x)
+    x= MaxPooling1D(2,padding='same')(x)
+    
+    x = Conv1D(filters=16, 
+                     kernel_size=5, 
+                     padding='same',
+                     activation='relu', 
+                     input_shape=(clip_lenth, dimension),
+                    kernel_regularizer=l2(l2_lambda)
+              )(x)
+    x = BatchNormalization()(x)
+
+    x = Conv1D(filters=16, 
+                     kernel_size=5, 
+                     padding='same',
+                     activation='relu', 
+                     input_shape=(clip_lenth, dimension),
+                     kernel_regularizer=l2(l2_lambda)
+              )(x)
+    x = BatchNormalization()(x)
+
+
+#####_______________________________________________________________________
+    u = GlobalMaxPooling1D()(x)
+    u_broadcast=RepeatVector(x.shape[1])(u)
+    
+    def op(inputs):
+        x, y = inputs
+        return K.pow((x - y), 2) 
+
+    Z=Lambda(op)([u_broadcast,x])
+
+    v = GlobalMaxPooling1D()(Z)
+    x = concatenate([u,v])
+    
+#####______________________________Multi task_________________________________________  
+# ['DP','BD','E','FS','A','RC']
+    number_of_N=16
+    DP=0.2
+    
+    y1 = Dense(number_of_N,kernel_initializer='he_uniform',
+             # kernel_regularizer=l2(l2_lambda)
+             )(x)
+    y1 = BatchNormalization()(y1)
+    y1 = Activation('relu')(y1)
+    y1 = Dropout(DP)(y1) # add some dropout for regularization after conv layers
+    y1= Dense(1, activation='sigmoid',kernel_initializer='glorot_uniform',name='DP'
+#              kernel_regularizer=l2(l2_lambda)
+             )(y1)
+
+    y2 = Dense(number_of_N,kernel_initializer='he_uniform',
+             # kernel_regularizer=l2(l2_lambda)
+             )(x)
+    y2 = BatchNormalization()(y2)
+    y2 = Activation('relu')(y2)
+    y2 = Dropout(DP)(y2) # add some dropout for regularization after conv layers
+    y2= Dense(1, activation='sigmoid',kernel_initializer='glorot_uniform',name='BD'
+#              kernel_regularizer=l2(l2_lambda)
+             )(y2)
+    
+    y3 = Dense(number_of_N,kernel_initializer='he_uniform',
+             # kernel_regularizer=l2(l2_lambda)
+             )(x)
+    y3 = BatchNormalization()(y3)
+    y3 = Activation('relu')(y3)
+    y3 = Dropout(DP)(y3) # add some dropout for regularization after conv layers
+    y3= Dense(1, activation='sigmoid',kernel_initializer='glorot_uniform',name='E'
+#              kernel_regularizer=l2(l2_lambda)
+             )(y3)
+
+    y4 = Dense(number_of_N,kernel_initializer='he_uniform',
+             # kernel_regularizer=l2(l2_lambda)
+             )(x)
+    y4 = BatchNormalization()(y4)
+    y4 = Activation('relu')(y4)
+    y4 = Dropout(DP)(y4) # add some dropout for regularization after conv layers
+    y4= Dense(1, activation='sigmoid',kernel_initializer='glorot_uniform',name='FS'
+#              kernel_regularizer=l2(l2_lambda)
+             )(y4)
+    
+    y5 = Dense(number_of_N,kernel_initializer='he_uniform',
+             # kernel_regularizer=l2(l2_lambda)
+             )(x)
+    y5 = BatchNormalization()(y5)
+    y5 = Activation('relu')(y5)
+    y5 = Dropout(DP)(y5) # add some dropout for regularization after conv layers
+    y5= Dense(1, activation='sigmoid',kernel_initializer='glorot_uniform',name='A'
+#              kernel_regularizer=l2(l2_lambda)
+             )(y5)
+    
+    y6 = Dense(number_of_N,kernel_initializer='he_uniform',
+             # kernel_regularizer=l2(l2_lambda)
+             )(x)
+    y6 = BatchNormalization()(y6)
+    y6 = Activation('relu')(y6)
+    y6 = Dropout(DP)(y6) # add some dropout for regularization after conv layers
+    y6= Dense(1, activation='sigmoid',kernel_initializer='glorot_uniform',name='RC'
+#              kernel_regularizer=l2(l2_lambda)
+             )(y6)
+#####______________________________Multi task_________________________________________  
+
+
+    model = Model(inputs=input_holder,outputs=[y1,y2,y3,y4,y5,y6])
+# ['DP','BD','E','FS','A','RC']
+    losses = {
+        "DP": "mean_squared_error",
+        "BD": "mean_squared_error",
+        "E": "mean_squared_error",
+        "FS": "mean_squared_error",
+        "A": "mean_squared_error",
+        "RC": "mean_squared_error",
+    }
+    model.compile(#loss='mean_squared_error', # 'categorical_crossentropy' 'mean_squared_error' 'mean_absolute_percentage_error'
+                  loss=losses, 
+              optimizer='adam') # 'adadelta' 'rmsprop'                  
+#     model.summary()
+    return model
