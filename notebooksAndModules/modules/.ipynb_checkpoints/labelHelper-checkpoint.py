@@ -45,13 +45,30 @@ class Label:
     
     def get_video_mean_label_by_video_number(self,videoNum):
         group=self.label_csv_file[self.label_csv_file['VideoNum'] == videoNum]
-#         print(group)
         return np.array(group.mean()[1:])
 
     def get_video_median_label_by_video_number(self,videoNum):
         group=self.label_csv_file[self.label_csv_file['VideoNum'] == videoNum]
-#         print(group)
         return np.array(group.median()[1:])
+    
+    def get_video_level_by_video_number(self,videoNum,meanOrMedian):
+        if meanOrMedian =="mean":
+            group=self.label_csv_file[self.label_csv_file['VideoNum'] == videoNum]
+            group=np.array(group.mean()[1:])
+        else:
+            group=self.label_csv_file[self.label_csv_file['VideoNum'] == videoNum]
+            group=np.array(group.median()[1:])      
+            
+        totalScore= np.sum(group)
+        
+        if totalScore<=13:
+            return 0,totalScore
+        elif totalScore<=21:
+            return 1,totalScore
+        else:
+            return 2,totalScore
+        # GEARS 6-13 = novice=0, GEARS 14-21 intermediate=1, GEARS 22-30 expert=2
+
 
     def get_video_number(self):
         return self.label_csv_file.VideoNum.unique()
@@ -82,14 +99,11 @@ class Label:
 if __name__ == "__main__": 
     print("test...")       
 
-# In[33]:
 
 
 # ll=Label('..//2019_fall_labels.csv')
 # N=ll.get_video_number()
 
-
-# In[20]:
 
 
 # a,b=ll.get_video_Scorerange(11)

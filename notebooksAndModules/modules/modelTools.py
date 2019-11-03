@@ -20,6 +20,22 @@ from keras.callbacks import (ModelCheckpoint, LearningRateScheduler,
                              EarlyStopping, ReduceLROnPlateau,CSVLogger)
 warnings.filterwarnings('ignore')
 import modules.featureHelper as fh
+
+def convert_to_skill(results,meanOrMedian="median"):
+    if meanOrMedian == "mean":
+        totalScore=np.mean(results,axis=0)
+    else:
+        totalScore=np.median(results,axis=0)
+    totalScore= np.sum(totalScore)
+    
+    if totalScore<=13:
+        return 0,totalScore
+    elif totalScore<=21:
+        return 1,totalScore
+    else:
+        return 2,totalScore
+    # GEARS 6-13 = novice=0, GEARS 14-21 intermediate=1, GEARS 22-30 expert=2
+
 def model_predit_by_videoNumber(model,folder,vNum,video_clips_length,time_lag,move_threshold,stride,label):
     vNum = [vNum]
     video, video_label = fh.make_train_test_data_from_video_numbers(folder,vNum,video_clips_length,time_lag,move_threshold,stride,label)
