@@ -18,7 +18,7 @@ import random
 
 def get_raw_feature_by_folder_and_videoNumbers(video_data_folder,video_number):
     feature=[]
-    print("load feature from files, there are %d videos"%len(video_number))
+    #print("load feature from files, there are %d videos"%len(video_number))
     for number in video_number:
         file_name = "raw_{}.npy".format(str(number))
         each_video= pjoin(video_data_folder,file_name)
@@ -28,7 +28,7 @@ def get_raw_feature_by_folder_and_videoNumbers(video_data_folder,video_number):
             print("Video %d did not find" %number)
             video_number = video_number[video_number!=number]
     
-    print("after deop: ",len(video_number))
+    #print("after deop: ",len(video_number))
     return feature,video_number
 
 def get_diff_and_hstack_to_orginal_data(X,time_lag=2,move_threshold=200):

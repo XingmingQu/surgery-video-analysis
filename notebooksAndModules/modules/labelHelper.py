@@ -7,7 +7,7 @@ print("Import an awesome Label helper")
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
-
+from sklearn.model_selection import KFold
 # In[32]:
 
 class Label:
@@ -95,6 +95,29 @@ class Label:
         train_video_number=np.concatenate([self.get_video_number_by_name(people) for people in train_people], axis=None)
         test_video_number=np.concatenate([self.get_video_number_by_name(people) for people in test_people], axis=None)
         return train_video_number,test_video_number
+    
+    def cross_validation_on_people(self,folds):
+
+        peoples=list(self.trainee_dict.keys())
+        kf = KFold(n_splits=folds)
+        train_people=[]
+        test_people=[]
+        for train_index, test_index in kf.split(peoples):
+            train_people.append([peoples[i] for i in train_index ])
+            test_people.append([peoples[i] for i in test_index ])
+
+        train_video_number_folds=[]
+        test_video_number_folds=[]
+
+        for one_fold_train, one_fold_test in zip(train_people,test_people):
+            train_video_number=np.concatenate([self.get_video_number_by_name(people) for people in one_fold_train], axis=None)
+            test_video_number=np.concatenate([self.get_video_number_by_name(people) for people in one_fold_test], axis=None)
+
+            train_video_number_folds.append(train_video_number)
+            test_video_number_folds.append(test_video_number)
+
+
+        return train_video_number_folds,test_video_number_folds
 
 if __name__ == "__main__": 
     print("test...")       
